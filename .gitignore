@@ -1,0 +1,11 @@
+# Ignore node_modules in all services
+node_modules/
+**/node_modules/
+
+# Ignore .env files in all services
+.env
+**/.env
+
+# Ignore uploaded files but keep .gitkeep
+/user-service/public/upload/*
+!/user-service/public/upload/.gitkeep
