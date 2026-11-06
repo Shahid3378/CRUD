@@ -15,12 +15,12 @@
 //      Fastify
 // -----------------
 
-async function sendMailRoutess(fastify, option){
+const { authMiddleware } = require('../middleware/authMiddleware')
+const { parseSendMailMultipart } = require('../middleware/parseSendMailMultipart')
+const { forwardSendMail } = require('../controllers/profileSendMailController')
+const { validationSendmail } = require('../validation/sendMail.Validation')
 
-    const { authMiddleware } = require('../middleware/authMiddleware')
-    const { parseSendMailMultipart } = require('../middleware/parseSendMailMultipart')
-    const { forwardSendMail } = require('../controllers/profileSendMailController')
-    const { validationSendmail } = require('../validation/sendMail.Validation')
+async function sendMailRoutess(fastify, option){
 
     fastify.post("/sendMails", { preHandler: [ authMiddleware, parseSendMailMultipart, validationSendmail ]}, forwardSendMail)
 

@@ -10,7 +10,7 @@ const sendMailRoutes = require("./routes/sendMailRoutes");
 const PORT = Number(process.env.PORT) || 3001;
 
 // Health-check route
-fastify.get("/", async (request, reply) => {
+fastify.post("/", async (request, reply) => {
     return reply.send({
         success: true,
         message: "Profile Service is running"

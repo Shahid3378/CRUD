@@ -68,7 +68,7 @@ const startWorker = async () => {
         })
 
     } catch(err){
-        throw new Error(`Error in worker: ${err.message}`)
+        throw err
     }
 }
 

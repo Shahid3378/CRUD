@@ -4,6 +4,7 @@ const express = require('express')
 const { rateLimit } = require('express-rate-limit')
 const session = require('express-session')
 const { RedisStore } = require('connect-redis')
+const {startCron} = require("./utils/cronJobs")
 
 const userRouters = require("./src/routes/userRoute")
 const templateRouters = require("./src/routes/templateRoutes")
@@ -62,6 +63,7 @@ async function startSever(){
         ])
         console.log('Monogo db connected')
 
+        await startCron()
         app.listen(PORT, () => {
             console.log(`Server is running on port : ${PORT}`)
         })

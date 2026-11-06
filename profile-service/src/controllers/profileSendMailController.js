@@ -59,14 +59,6 @@ module.exports.forwardSendMail = async (request, reply) => {
             .send(response.data);
 
     } catch (error) {
-        request.log.error(
-            {
-                message: error.message,
-                downstreamStatus: error.response?.status,
-                downstreamData: error.response?.data
-            },
-            "Send-mail forwarding failed"
-        );
 
         if (error.response) {
             return reply

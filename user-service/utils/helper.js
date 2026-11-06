@@ -348,3 +348,28 @@ module.exports.singleUpload = async ({ file, uploadOnCloudinary }) => {
 
 //     return { primary, secondary }
 // }
+
+const { cache } = require("../connections/cacheConnection")
+// Cache memory using NodeCache
+
+module.exports.getCache = (key) => {
+    return cache.get(key)
+}
+
+//(key, data, ttl=300) : 5 min = 300 sec
+module.exports.setCache = (key, data, ttl=300) => { 
+    return cache.set(key, data, ttl)
+}
+
+module.exports.delCache = (key) => {
+    return cache.del(key)
+}
+
+module.exports.clearCache = () => {
+    return cache.flushAll()
+}
+
+module.exports.getAllCache = () => {
+    const keys = cache.keys()
+    return cache.mget(keys)
+}

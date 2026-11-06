@@ -1,9 +1,9 @@
 const User = require("../../model/userModel");
-
+const { cache } = require("../../connections/cacheConnection")
 const redisClient = require("../../connections/redisConnection");
 const { success, error } = require("../../utils/response");
 const defaultCall = require("../../utils/defaultCall");
-const { decryptedData, encryptedData, createLookupHook, hashingPassword, createTree, checkUserType, createWallet, sendMail, checkPassword, searchAlgorithm } = require("../../utils/helper");
+const { decryptedData, encryptedData, createLookupHook, hashingPassword, createTree, checkUserType, createWallet, sendMail, checkPassword, searchAlgorithm, getCache, setCache, delCache, clearCache, getAllCache } = require("../../utils/helper");
 // const  sendMail  = require("../../utils/mails");
 const jwt = require("jsonwebtoken");
 // const { promises } = require("nodemailer/lib/xoauth2");
@@ -180,12 +180,12 @@ module.exports.login = async (req, res) => {
     if (username) {
       const usernameLookup = createLookupHook(username);
       console.log("usernameLookup : ", usernameLookup);
-      user = await primary.findOne({ usernameLookup });
+      user = await primary.findUser({ usernameLookup });
     }
     if (email) {
       const emailLookup = createLookupHook(email);
       console.log("emailLookup : ", emailLookup);
-      user = await primary.findOne({ emailLookup });
+      user = await primary.findUser({ emailLookup });
     }
     console.log("User details: ", user);
 
@@ -207,13 +207,20 @@ module.exports.login = async (req, res) => {
       return  error(res, "Invalid password or password not matched");
     }
 
-    const token = jwt.sign(
-      {
+    const data = {
         userId: user.userId,
         parentTree: user.parentTree,
         username: user.username,
         userType: user.userType,
-      },
+      }
+
+    const cacheKey = `userId:${user.userId}`;
+    const cacheData = setCache(cacheKey, user);
+    console.log("Cache saved:", cacheData);
+
+    
+    const token = jwt.sign(
+      data,
       process.env.JWT_SECRET,
       {
         expiresIn: "1h",
@@ -256,6 +263,8 @@ module.exports.addBalance = async (req, res) => {
     
     const parentData = JSON.parse(cacheData);
     console.log(parentData, "parentUser")
+
+    const cacheUser = setCache(cacheKey, parentData)
 
     // const key = parentData.apiKey;
 
@@ -384,6 +393,7 @@ module.exports.createUser = async (req, res) => {
     };
 
     console.log(cacheData, "cacheData");
+    setCache(cacheKey, cacheData)
     await redisClient.set(cacheKey, JSON.stringify(cacheData));
 
     // userData = JSON.parse(await redisClient.get(cacheKey))
@@ -464,12 +474,20 @@ module.exports.createUser = async (req, res) => {
 
 module.exports.getChildUsers = async (req, res) => {
   try {
-    console.log(req.userInfo);
+    console.log(req.userInfo, "======");
+    // return
 
     const apiKey = req.headers["x-api-key"];
     const { UserPrimary:primary, UserSecondary:secondary } = await User
 
-    const user = await primary.findUser({ apiKey: apiKey });
+    let user = await primary.findUser({ apiKey: apiKey });
+
+    // const getAll = await getAllCache()
+    const cacheKey = `userId:${req.userInfo.userId}`;
+    console.log(cacheKey, '=====')
+    const cachedData = await getCache(cacheKey);
+    console.log(cachedData, "cacheData from getChildUsers====")
+    // return
 
     let userId;
     if (user) {
@@ -517,7 +535,9 @@ module.exports.userTempDetails = async (req, res) => {
 
     const userTemp = await primary.getUserTempData();
     console.log(userTemp, "from userController============");
-    return success(res, userTemp, "Successful");
+    const length = userTemp.length
+    console.log(length, "======")
+    return success(res, { count: length }, userTemp, "Successful");
   } catch (err) {
     return error(res, `Got error ${err}`);
   }
@@ -563,6 +583,25 @@ module.exports.usersData = async (req, res) => {
     const search = searchAlgorithm(primary, searching);
     const query = { isDeleted: { $ne: true } };
 
+    const allUsers = getCache('allUser');
+    if(searching.length === 0 || searching === "all"){
+      console.log(allUsers.length, "==allUsers==")
+      return success( res, 
+        { total: allUsers.length, users: allUsers},
+        "Users data"
+      );
+    }
+    let searchQuery = ["superAdmin", "reseller", "endUser"]
+    if(searchQuery.includes(searching)){
+      userList = allUsers.filter(user => {
+        return user.userType === searching
+      })
+      console.log(userList, "userList======")
+      return success( res, 
+        { total: userList.length, users: userList},
+        "Users data"
+      );
+    }
 
     if (search.length) {
       query.$or = search;

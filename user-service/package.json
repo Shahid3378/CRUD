@@ -12,7 +12,7 @@
   "type": "commonjs",
   "dependencies": {
     "amqplib": "^2.0.1",
-    "axios": "^1.20.0",
+    "axios": "^1.21.0",
     "bcrypt": "^6.0.0",
     "cloudinary": "^2.11.0",
     "connect-mongoose": "^0.0.2",
@@ -29,6 +29,8 @@
     "mongoose": "^9.9.4",
     "multer": "^2.4.0",
     "multer-storage-cloudinary": "^2.2.1",
+    "node-cache": "^5.1.2",
+    "node-cron": "^4.6.0",
     "nodemailer": "^9.0.5",
     "nodemon": "^1.19.4",
     "redis": "^6.2.1",
